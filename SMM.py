@@ -11,6 +11,7 @@ def cut_link(token, original_url):
         'private': 0
     }
     response = requests.get('https://api.vk.com/method/utils.getShortLink', params=params)
+    response.raise_for_status()
     return response.json()
 
 
@@ -24,6 +25,7 @@ def count_clicks(token, url_key):
         'extended': 1
     }
     response = requests.get('https://api.vk.com/method/utils.getLinkStats', params=params)
+    response.raise_for_status()
     return response.json()
 
 
@@ -35,6 +37,7 @@ def is_shorted_link(token, url_to_check):
         'private': 0
     }
     response = requests.get('https://api.vk.com/method/utils.getShortLink', params=params)
+    response.raise_for_status()
     short_url_data = response.json()
     return 'error' not in short_url_data and 'vk.cc/' in url_to_check
 
@@ -72,4 +75,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
