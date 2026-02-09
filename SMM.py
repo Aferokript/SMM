@@ -12,7 +12,8 @@ def cut_link(token, original_url):
     }
     response = requests.get('https://api.vk.com/method/utils.getShortLink', params=params)
     response.raise_for_status()
-    return response.json()
+    short_url = response.json()
+    return short_url['response']['short_url']
 
 
 def count_clicks(token, url_key):
@@ -26,7 +27,8 @@ def count_clicks(token, url_key):
     }
     response = requests.get('https://api.vk.com/method/utils.getLinkStats', params=params)
     response.raise_for_status()
-    return response.json()
+    counted_clicks = response.json()
+    return counted_clicks['response']['stats'][0]['views']
 
 
 def is_shorted_link(token, url_to_check):
@@ -38,37 +40,26 @@ def is_shorted_link(token, url_to_check):
     }
     response = requests.get('https://api.vk.com/method/utils.getShortLink', params=params)
     response.raise_for_status()
-    short_url_data = response.json()
-    return 'error' not in short_url_data and 'vk.cc/' in url_to_check
+    short_url = response.json()
+    return 'error' not in short_url and 'vk.cc/' in url_to_check
 
 
 def main():
     try:
         load_dotenv()
         token = os.environ['VK_TOKEN']
-
         user_link = input('Введите ссылку ')
 
-        if is_shorted_link(token, user_link):
+        if 'vk.cc/' in user_link:
             url_key = user_link.split('vk.cc/')[-1]
-            link_stats_data = count_clicks(token, url_key)
-
-            if 'error' in link_stats_data:
-                print('Ошибка')
-            else:
-                views_count = link_stats_data["response"]["stats"][0]["views"]
-                print(f'По ссылке перешло: {views_count}')
+            clicks = count_clicks(token, url_key)
+            print(f'По ссылке перешло: {clicks}')
         else:
-            short_url_response = cut_link(token, user_link)
-
-            if 'error' in short_url_response:
-                print('Ошибка')
-            else:
-                short_url_value = short_url_response['response']['short_url']
-                print(f'Короткая ссылка: {short_url_value}')
+            short_url = cut_link(token, user_link)
+            print(f'Короткая ссылка: {short_url}')
 
     except requests.exceptions.HTTPError:
-        print('Ошибка')
+        print('Ошибка соединения')
     except KeyError:
         print('Ошибка: VK_TOKEN не найден')
 
